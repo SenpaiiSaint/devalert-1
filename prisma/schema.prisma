@@ -8,52 +8,37 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  role      String // e.g., 'ADMIN', 'VIEWER' or use an enum
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Example relation: a user might own multiple AlertRule records
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  password   String
+  role       String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
   alertRules AlertRule[]
 }
 
-// Represents a single metric reading, e.g. "CPU usage = 75 at time T"
 model MetricReading {
   id         Int      @id @default(autoincrement())
   metricName String
   value      Float
   timestamp  DateTime @default(now())
-
-  // If you want to link readings to the host or device that generated them:
-  // deviceId  Int?
-  // device    Device? @relation(fields: [deviceId], references: [id])
 }
 
-// Defines rules like "If CPU usage > 80, trigger an alert"
-// You can store references to a user (the rule's owner) or a device ID
 model AlertRule {
-  id         Int      @id @default(autoincrement())
-  metricName String
-  operator   String // e.g. ">", "<", ">=", "<="
-  threshold  Float
-  createdAt  DateTime @default(now())
-
-  // Relationship back to the user who owns this alert
+  id             Int              @id @default(autoincrement())
+  metricName     String
+  operator       String
+  threshold      Float
+  createdAt      DateTime         @default(now())
   ownerId        Int?
   owner          User?            @relation(fields: [ownerId], references: [id])
   TriggeredAlert TriggeredAlert[]
 }
 
-// Logs whenever an alert is triggered (useful for tracking which alerts fired)
 model TriggeredAlert {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   alertRuleId Int
-  // The reading or value that caused the alert
   metricValue Float
-  triggeredAt DateTime @default(now())
-
-  // Relationship to the rule that triggered
-  alertRule AlertRule @relation(fields: [alertRuleId], references: [id])
+  triggeredAt DateTime  @default(now())
+  alertRule   AlertRule @relation(fields: [alertRuleId], references: [id])
 }
